@@ -672,6 +672,7 @@ function getGhostAdminRoute() {
       </div>
     </details>
     <div>
+      <a id="guild-join-link" href="https://discord.com/oauth2/authorize?client_id=${config.discord.clientId}&scope=bot&permissions=268435456" target="_blank">Add bot to guild</a></br>
       <input id="guild-id">
       <button onclick="sendNewGuildId()">Update Guild ID</button>
     </div>
@@ -734,6 +735,7 @@ function getGhostAdminRoute() {
         if (data.status === "ReloadedBot") {
           document.getElementById("bot-details").open = false;
           refreshStatus();
+          document.getElementById("guild-join-link").setAttribute("href", \`https://discord.com/oauth2/authorize?client_id=\${clientId}&scope=bot&permissions=268435456\`);
         }
       }
       async function sendNewGuildId() {

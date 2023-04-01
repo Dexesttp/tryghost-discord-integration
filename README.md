@@ -85,8 +85,7 @@ The set up process is currently quite involved, since the setup script has not b
   - You will need to click on "Bot Status" to show additional details
   - Click on `Send new secrets` once you're done
   - Check that the Bot Status is now shown as `Online`. If not, then you have an issue with your token, ID or secret.
-12. Invite your Bot to your guild
-  - This is a bit of an involved process with oauth, you need to generate a custom link and things like that. This is described in [the Bot Authorization Flow in the developer docs](https://discord.com/developers/docs/topics/oauth2#bot-authorization-flow), with the code `268435456` for managing roles. Ultimately, this should be shown on the website directly.
+12. Invite your Bot to your guild by clicking on the "Add bot to guild" link.
 13. Enter the guild ID where you want your bot to be active in `guild ID`, then click on "Update Guild ID"
 14. Set up your roles
   - Click on "Re-request the list of roles from the guild" to see the roles available on Discord
