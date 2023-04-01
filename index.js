@@ -288,7 +288,7 @@ async function refreshMemberRolesOnDiscord() {
     if (!botClient) {
       lastRefreshStatus = {
         result: "BotNotConnected",
-        messages: ["The bot was not connected. No refresh"],
+        messages: ["The bot was not connected. No refresh was possible."],
       };
       return;
     }
@@ -302,8 +302,8 @@ async function refreshMemberRolesOnDiscord() {
     const guild = await botClient.guilds.resolve(config.discord.guildId);
     if (!guild) {
       lastRefreshStatus = {
-        result: "BotNotConnected",
-        messages: ["The bot was not connected. No refresh"],
+        result: "GuildNotFound",
+        messages: ["The bot is not invited in the wanted guild. No refresh was possible."],
       };
       return;
     }
