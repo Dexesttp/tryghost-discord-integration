@@ -76,8 +76,10 @@ The set up process is currently quite involved, since the setup script has not b
     ```
   - Don't forget to restart nginx once you're done with `sudo systemctl restart nginx.service`.
 8. Create a Discord application in the [Discord developer portal](https://discord.com/developers/applications)
-9. Add the redirect in your Discord application
+9. Configure your Discord application
   - In the OAuth2 panel, under "Redirects", add `<your-website>/discord/auth/callback`
+  - In the "Bot" panel, click on "create bot"
+  - After the bot is created, check the "Server Members Intent" toggle
 10. Note down a few things about your Discord application
   - In the OAuth2 panel, note your `client ID` and `client secret` (you will need to click on "reset secret" to see it)
   - In the "Bot" panel, note down your `token` (you will need to click on "reset token" to see it)

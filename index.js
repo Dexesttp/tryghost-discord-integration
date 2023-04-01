@@ -696,7 +696,7 @@ function getGhostAdminRoute() {
         if (data.botStatus) {
           botStatusElement.innerHTML = "Bot Status: <span style=\\"color: green;\\">Online</span> (click to reconfigure)";
         } else if (data.botConfig) {
-          botStatusElement.innerHTML = "Bot Status: <span style=\\"color: red;\\">Offline</span> (incorrect config resulting in connection issue - click to reconfigure)";
+          botStatusElement.innerHTML = "Bot Status: <span style=\\"color: red;\\">Offline</span> (incorrect config, issue connecting to Discord - check whether 'Server Members Intent' are added on the Discord Bot, or click to reconfigure tokens)";
         } else {
           botStatusElement.innerHTML = "Bot Status: <span style=\\"color: red;\\">Offline</span> (no config - click to reconfigure)";
         }
@@ -918,7 +918,7 @@ function getGhostAdminRoute() {
     }
     const isHandledByBot = req.body.isHandledByBot;
     const discordRoleId = req.body.discordRoleId;
-    if (!isHandledByBot || !discordRoleId) {
+    if (isHandledByBot === undefined || !discordRoleId) {
       res.status(400);
       res.json({
         status: "InvalidBody",
