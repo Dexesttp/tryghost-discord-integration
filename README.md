@@ -31,7 +31,7 @@ This project is made of four distinct parts:
 - [X] Integrate Ghost members and Discord accounts
 - [X] Add a Discord bot management screen for admins
 - [X] Add a role management screen for admins
-- [ ] Make the Ghost to Discord integration screen integrated in the Ghost website directly
+- [X] Make the Ghost to Discord integration screen integrated in the Ghost website directly
 - [ ] Prettify the admin screen
 - [ ] Write the script to automatically install everything
 
@@ -40,7 +40,7 @@ This project is made of four distinct parts:
 The set up process is currently quite involved, since the setup script has not been written. However, this workflow should help with the setup script down the line.
 
 1. Install Ghost - see [the install instructions](https://ghost.org/docs/install/ubuntu/) for details about that.
-2. Download this repository's contents (or maybe just the `index.js` and `package.json` files) in a folder on your server
+2. Download this repository's contents (or at least the `index.js`, `discord-integration-plugin.js` and `package.json` files) in a folder on your server
   - The best place is probably in `/var/www/`, next to the other Ghost things you added there (for example, `/var/www/ghost-discord-integration`)
 3. Run `npm install` in this folder
 4. Set up an `.env` file in this folder, following the example of `env.example`
@@ -96,11 +96,17 @@ The set up process is currently quite involved, since the setup script has not b
   - The bot will auto-run whenever an user connects or disconnects themselves to the bot
   - You need to add hooks for users changing membership
 16. Set up the hooks of the discord integration
-  - Go back to your Ghost settings, under the integration
+  - Go back to your Ghost settings, and to your created integration
   - Add the `Member added` event to `http://localhost:19234/members/added`
   - Add the `Member deleted` event to `http://localhost:19234/members/removed`
   - Add the `Member updated` event to `http://localhost:19234/members/updated`
-17. That's it! The website is now completely ready!
+17. Set up the script injection for the members screen
+  - Go back to your Ghost settings, under the code injection section
+  - Add the following lines to the "Site Footer" section:
+    ```html
+    <script type="application/javascript" src="/discord/discord-integration-plugin.js"></script>
+    ```
+18. That's it! The website is now completely ready!
 
 ## License
 

@@ -3,6 +3,7 @@
 console.log("Loading modules...");
 
 const express = require("express");
+const path = require("path");
 const bodyParser = require("body-parser");
 const dotenv = require("dotenv");
 const Cookies = require("cookies");
@@ -496,6 +497,9 @@ function getGhostUserRoute() {
     authorizationUri: "https://discord.com/oauth2/authorize",
     redirectUri: `${config.ghost.url}/discord/auth/callback`,
     scopes: ["identify"],
+  });
+  ghostUserRoute.get("/discord-integration-plugin.js", async (req, res) => {
+    res.sendFile(path.join(__dirname, "./discord-integration-plugin.js"));
   });
   ghostUserRoute.get("/connect", (req, res) => {
     const username = req.cookies.get("ghost-members-ssr", { signed: true });
