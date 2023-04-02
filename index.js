@@ -241,13 +241,19 @@ async function reloadBotClient() {
 
 async function refreshRolesFromDiscord() {
   if (!botClient) return;
+  if (!botClient.user) return;
   const guild = await botClient.guilds.resolve(config.discord.guildId);
   if (!guild) return;
   const foundIDs = [];
 
+  const ownMember = await guild.members.fetch(botClient.user);
+
   // Add or update roles based on Discord
   const guildRoles = await guild.roles.fetch();
   for (const role of guildRoles.values()) {
+    const isSelfBotRole = role.members.some(
+      (m) => m.user.id === ownMember.user.id
+    );
     const existing = await knex(config.tables.roles)
       .where("discord_role_id", role.id)
       .first();
@@ -257,6 +263,9 @@ async function refreshRolesFromDiscord() {
       creationTimestamp: role.createdTimestamp,
       color: role.hexColor,
       emoji: role.unicodeEmoji,
+      position: role.position,
+      managed: role.managed,
+      isSelfBotRole: isSelfBotRole,
     };
     foundIDs.push(role.id);
     if (existing) {
@@ -303,7 +312,9 @@ async function refreshMemberRolesOnDiscord() {
     if (!guild) {
       lastRefreshStatus = {
         result: "GuildNotFound",
-        messages: ["The bot is not invited in the wanted guild. No refresh was possible."],
+        messages: [
+          "The bot is not invited in the wanted guild. No refresh was possible.",
+        ],
       };
       return;
     }
@@ -580,7 +591,9 @@ function getGhostUserRoute() {
   });
   ghostUserRoute.get("/loggedin", async (req, res) => {
     res.status(200);
-    res.send(`<!DOCTYPE html><html><head><title>Log in success!</title></head><body style="margin: 0; background: #333; color: #FFF; display: flex; width: 100vw; height: 100vw; justify-content: center; align-items: center;"><h1>Log in successful!`);
+    res.send(
+      `<!DOCTYPE html><html><head><title>Log in success!</title></head><body style="margin: 0; background: #333; color: #FFF; display: flex; width: 100vw; height: 100vw; justify-content: center; align-items: center;"><h1>Log in successful!`
+    );
     res.end();
   });
   ghostUserRoute.get("/status", async (req, res) => {
@@ -648,218 +661,7 @@ function getGhostAdminRoute() {
     return;
   });
   ghostAdminRoute.get("/", (req, res) => {
-    res.status(200);
-    res.send(`<!DOCTYPE html>
-  <html>
-  <head>
-    <title>Discord Config Temporary Page</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta charset="UTF-8">
-  </head>
-  <body>
-    <h1>Discord Config Page</h1>
-    <div>
-    </div>
-    <details id="bot-details">
-      <summary id="bot-status">
-        Bot Status: Unknown (click to update config)
-      </summary>
-      <div>
-        <label>Token: <input id="discord-token"></label></br>
-        <label>Client ID: <input id="discord-client-id"></label></br>
-        <label>Client Secret: <input id="discord-client-secret"></label></br>
-        <button onclick="sendNewDiscordSecrets()">Send new secrets and reload the bot</button>
-      </div>
-    </details>
-    <div>
-      <a id="guild-join-link" href="https://discord.com/oauth2/authorize?client_id=${config.discord.clientId}&scope=bot&permissions=268435456" target="_blank">Add bot to guild</a></br>
-      <input id="guild-id">
-      <button onclick="sendNewGuildId()">Update Guild ID</button>
-    </div>
-    <div>
-      <h3>Manage Roles</h3>
-      <button onclick="reloadRoles()">Re-request the list of roles from the Discord Guild</button>
-      <div id="roles-list"></div>
-    </div>
-    <div>
-      <h3>Roles Refresh</h3>
-      <button onclick="reloadUsers()">Re-apply all roles to users</button>
-      <button onclick="refreshStatus()">Refresh the logs of the last Discord bot run</button>
-      <div id="bot-refresh-status"></div>
-      <div id="bot-refresh-log"></div>
-    </div>
-    <script type="application/javascript">
-      async function refreshStatus() {
-        const request = await fetch("/ghost/discord/status");
-        const data = await request.json();
-        const botStatusElement = document.getElementById("bot-status");
-        if (data.botStatus) {
-          botStatusElement.innerHTML = "Bot Status: <span style=\\"color: green;\\">Online</span> (click to reconfigure)";
-        } else if (data.botConfig) {
-          botStatusElement.innerHTML = "Bot Status: <span style=\\"color: red;\\">Offline</span> (incorrect config, issue connecting to Discord - check whether 'Server Members Intent' are added on the Discord Bot, or click to reconfigure tokens)";
-        } else {
-          botStatusElement.innerHTML = "Bot Status: <span style=\\"color: red;\\">Offline</span> (no config - click to reconfigure)";
-        }
-        document.getElementById("guild-id").value = data.guildId;
-        if (data.pendingRefresh) {
-          document.getElementById("bot-refresh-status").innerText = "Refresh is pending";
-        } else if (data.lastRefresh) {
-          document.getElementById("bot-refresh-status").innerText = "Last refresh results: " + data.lastRefresh.result;
-        } else {
-          document.getElementById("bot-refresh-status").innerText = "No refreshes have been done yet";
-        }
-        let lastRefreshLogs = "";
-        if (data.lastRefresh) {
-          for (const message of data.lastRefresh.messages) {
-            lastRefreshLogs += "<div>";
-            lastRefreshLogs += message;
-            lastRefreshLogs += "</div>";
-          }
-        }
-        document.getElementById("bot-refresh-log").innerHTML = lastRefreshLogs;
-      }
-      async function sendNewDiscordSecrets() {
-        const token = document.getElementById("discord-token").value;
-        const clientId = document.getElementById("discord-client-id").value;
-        const clientSecret = document.getElementById("discord-client-secret").value;
-        const response = await fetch("/ghost/discord/config/update/tokens", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({  
-            token: token,
-            clientId: clientId,
-            clientSecret: clientSecret,
-          }),
-        });
-        const data = await response.json();
-        if (data.status === "ReloadedBot") {
-          document.getElementById("bot-details").open = false;
-          refreshStatus();
-          document.getElementById("guild-join-link").setAttribute("href", \`https://discord.com/oauth2/authorize?client_id=\${clientId}&scope=bot&permissions=268435456\`);
-        }
-      }
-      async function sendNewGuildId() {
-        const response = await fetch("/ghost/discord/config/update/guild", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({  
-            guildId: guildId,
-          }),
-        });
-        const data = await response.json();
-      }
-      async function refreshRolesDisplay() {
-        const request = await fetch("/ghost/discord/roles/list");
-        const data = await request.json();
-        console.log(data);
-        const rolesElement = document.getElementById("roles-list");
-        let result = "<ul>";
-        for (const role of data.roles) {
-          const roleData = JSON.parse(role.data);
-          result += "<li>";
-          result += roleData.name;
-          result += " - ";
-          if (role.is_handled_by_bot) {
-            result += "Handled by bot";
-            result += \`<button onclick="removeRoleHandling('\${role.id}')">Stop handling role</button>\`;
-            result += "Associated Ghost tier(s):";
-            let hasAssociation = false;
-            for (const association of data.associations) {
-              if (association.discord_role_id !== role.id) continue;
-              const tier = data.tiers.find(t => t.slug === association.slug);
-              if (!tier) continue;
-              hasAssociation = true;
-              result += " <span class=\\"associated-tier\\">";
-              result += tier.name;
-              result += \`<button onclick="removeTierToRoleAssociation('\${role.id}', '\${tier.slug}')">Remove</button>\`;
-              result += "</span>";
-            }
-            if (!hasAssociation) {
-              result += " None";
-            }
-            result += "<details>";
-            result += "<summary>Associate more tiers:</summary>";
-            result += "<ul>";
-            for (const tier of data.tiers) {
-              result += "<li><label>";
-              result += tier.name;
-              result += \`<button onclick="associateTierWithRole('\${role.id}', '\${tier.slug}')">Associate</button>\`;
-              result += "</label></li>";
-            }
-            result += "</ul>";
-            result += "</details>";
-          } else {
-            result += "Not handled by bot";
-            result += \`<button onclick="addRoleHandling('\${role.id}')">Handle role</button>\`;
-          }
-          result += "</li>";
-        }
-        result += "</ul>";
-        rolesElement.innerHTML = result;
-      }
-      async function reloadRoles() {
-        const result = await fetch("/ghost/discord/refresh/roles", { method: "POST" });
-        const data = await result.json();
-        refreshRolesDisplay();
-      }
-      async function reloadUsers() {
-        const result = await fetch("/ghost/discord/refresh/users", { method: "POST" });
-        const data = await result.json();
-      }
-      async function addRoleHandling(roleId) {
-        const response = await fetch("/ghost/discord/roles/set-bot-handling", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({  
-            isHandledByBot: true,
-            discordRoleId: roleId,
-          }),
-        });
-        const data = await response.json();
-        refreshRolesDisplay();
-      }
-      async function removeRoleHandling(roleId) {
-        const response = await fetch("/ghost/discord/roles/set-bot-handling", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({  
-            isHandledByBot: false,
-            discordRoleId: roleId,
-          }),
-        });
-        const data = await response.json();
-        refreshRolesDisplay();
-      }
-      async function associateTierWithRole(roleId, slug) {
-        const response = await fetch("/ghost/discord/roles/add-association", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({  
-            slug: slug,
-            discordRoleId: roleId,
-          }),
-        });
-        const data = await response.json();
-        refreshRolesDisplay();
-      }
-      async function removeTierToRoleAssociation(roleId, slug) {
-        const response = await fetch("/ghost/discord/roles/remove-association", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({  
-            slug: slug,
-            discordRoleId: roleId,
-          }),
-        });
-        const data = await response.json();
-        refreshRolesDisplay();
-      }
-      refreshStatus();
-      refreshRolesDisplay();
-    </script>
-  </body>
-  </html>`);
-    res.end();
+    res.sendFile(path.join(__dirname, "./discord-admin-page.html"));
   });
   ghostAdminRoute.get("/status", async (req, res) => {
     res.status(200);
@@ -872,6 +674,7 @@ function getGhostAdminRoute() {
         config.discord.clientId &&
         config.discord.clientSecret
       ),
+      clientId: config.discord.clientId,
       guildId: config.discord.guildId,
       pendingRefresh: isRefreshScheduled,
       lastRefresh: lastRefreshStatus,
@@ -880,7 +683,7 @@ function getGhostAdminRoute() {
   });
   ghostAdminRoute.get("/roles/list", async (req, res) => {
     const roles = await knex(config.tables.roles).select({
-      id: "discord_role_id",
+      discord_role_id: "discord_role_id",
       is_handled_by_bot: "is_handled_by_bot",
       data: "data",
     });
@@ -899,7 +702,11 @@ function getGhostAdminRoute() {
     const tiers = await fetchedTiers.body.json();
     res.status(200);
     res.json({
-      roles: roles,
+      roles: roles.map((r) => ({
+        discord_role_id: r.discord_role_id,
+        is_handled_by_bot: r.is_handled_by_bot,
+        data: JSON.parse(r.data),
+      })),
       associations: associations,
       tiers: tiers.tiers,
     });

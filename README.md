@@ -32,7 +32,7 @@ This project is made of four distinct parts:
 - [X] Add a Discord bot management screen for admins
 - [X] Add a role management screen for admins
 - [X] Make the Ghost to Discord integration screen integrated in the Ghost website directly
-- [ ] Prettify the admin screen
+- [X] Prettify the admin screen
 - [ ] Write the script to automatically install everything
 
 ## How to set it up
@@ -40,7 +40,7 @@ This project is made of four distinct parts:
 The set up process is currently quite involved, since the setup script has not been written. However, this workflow should help with the setup script down the line.
 
 1. Install Ghost - see [the install instructions](https://ghost.org/docs/install/ubuntu/) for details about that.
-2. Download this repository's contents (or at least the `index.js`, `discord-integration-plugin.js` and `package.json` files) in a folder on your server
+2. Download this repository's contents (or at least the `index.js`, `discord-integration-plugin.js`, `discord-admin-page.html` and `package.json` files) in a folder on your server
   - The best place is probably in `/var/www/`, next to the other Ghost things you added there (for example, `/var/www/ghost-discord-integration`)
 3. Run `npm install` in this folder
 4. Set up an `.env` file in this folder, following the example of `env.example`
@@ -87,11 +87,12 @@ The set up process is currently quite involved, since the setup script has not b
   - You will need to click on "Bot Status" to show additional details
   - Click on `Send new secrets` once you're done
   - Check that the Bot Status is now shown as `Online`. If not, then you have an issue with your token, ID or secret.
-12. Invite your Bot to your guild by clicking on the "Add bot to guild" link.
-13. Enter the guild ID where you want your bot to be active in `guild ID`, then click on "Update Guild ID"
+12. Enter the guild ID where you want your bot to be active in `guild ID`, then click on "Update Guild ID"
+13. Invite your Bot to your guild by clicking on the "Add bot to guild" link that appears
 14. Set up your roles
-  - Click on "Re-request the list of roles from the guild" to see the roles available on Discord
-  - Click on "Handle role" to make the bot responsible for the role
+  - Create your roles on Discord (be careful to place them below the bot's own role so it can manage them)
+  - Click on "Refresh server roles" to see the roles available on Discord
+  - Open the "Roles not handled by the bot" section, then in the list, click on "Handle role" on the roles you want to make the bot responsible for these roles
   - Click on "Associate more tiers" then select the tier you want for the role
 15. Click on "Re-apply all roles to users" to force the bot to run
   - The bot will auto-run whenever an user connects or disconnects themselves to the bot
@@ -107,7 +108,7 @@ The set up process is currently quite involved, since the setup script has not b
     ```html
     <script type="application/javascript" src="/discord/discord-integration-plugin.js"></script>
     ```
-18. That's it! The website is now completely ready!
+18. That's it! The website integration is now ready!
 
 ## License
 

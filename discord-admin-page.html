@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Discord Config Temporary Page</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta charset="UTF-8" />
+    <style>
+      html {
+        font-family: Inter, -apple-system, BlinkMacSystemFont, Segoe UI, Roboto,
+          Oxygen, Ubuntu, Droid Sans, Helvetica Neue, sans-serif;
+        background: #fff;
+        color: #15171a;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: row;
+        width: 100vw;
+        height: 100vh;
+      }
+      nav.nav-sidebar {
+        position: relative;
+        z-index: 800;
+        flex: 0 0 320px;
+        transform: translateX(0);
+        border-right: 1px solid #e6e9eb;
+      }
+      nav > header {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        height: 96px;
+        padding: 32px;
+      }
+      nav > header > a {
+        font-size: 1.5rem;
+        letter-spacing: 0;
+        line-height: 1.3em;
+        font-weight: 700;
+        color: #15171a;
+        text-decoration: none;
+      }
+      nav > header > a:hover {
+        text-decoration: underline;
+      }
+      main.main-container {
+        flex: 1 1 auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        overflow-x: hidden;
+        overflow-y: auto;
+      }
+      article.main-content {
+        flex-grow: 1;
+        padding: 0 48px 48px;
+        margin: 0 auto;
+        width: 100%;
+        max-width: 1320px;
+        line-height: 1.6;
+        font-size: 18px;
+        padding: 0 10px;
+      }
+      h1,
+      h2,
+      h3 {
+        line-height: 1.2;
+      }
+      input[type="text"] {
+        display: block;
+        width: calc(100% - 26px);
+        height: 38px;
+        padding: 6px 12px;
+        border: 1px solid #dddedf;
+        background: #fff;
+        color: #394047;
+        font-size: 1.5rem;
+        letter-spacing: 0;
+        font-weight: 400;
+        border-radius: 3px;
+      }
+      button.refresh-button {
+        padding: 0 30px;
+        outline: none;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        line-height: inherit;
+        display: inline-block;
+        outline: none;
+        background: #ebeef0;
+        color: #394047;
+        text-decoration: none !important;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+        fill: #fff;
+        font-weight: 500;
+        border-radius: 3px;
+        transition: all 0.2s ease;
+        transition-property: all;
+        transition-property: color, border-color, background, width, height,
+          box-shadow;
+        height: 28px;
+      }
+      button.refresh-button:hover {
+        color: #fff;
+        background: #000 !important;
+      }
+      button.save-button {
+        padding: 0;
+        outline: none;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        line-height: inherit;
+        display: inline-block;
+        outline: none;
+        background: #ebeef0;
+        color: #394047;
+        text-decoration: none !important;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+        fill: #fff;
+        font-weight: 500;
+        border-radius: 3px;
+        transition: all 0.2s ease;
+        transition-property: all;
+        transition-property: color, border-color, background, width, height,
+          box-shadow;
+        width: 100%;
+        height: 38px;
+      }
+      button.save-button:hover {
+        color: #fff;
+        background: #000 !important;
+      }
+      .unhandled-role-details {
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="nav-sidebar">
+      <header>
+        <a href="..">◄ Back to website administration</a>
+      </header>
+    </nav>
+    <main class="main-container">
+      <article class="main-content">
+        <h2>Discord Config Page</h2>
+        <fieldset>
+          <legend>Bot Status</legend>
+          <div id="bot-status">Bot Status: Unknown</div>
+          <details id="bot-details">
+            <summary id="bot-configuration">Click to update config</summary>
+            <fieldset>
+              <label
+                >Client ID: <input type="text" id="discord-client-id"
+              /></label>
+              <br />
+              <label
+                >Client Secret: <input type="text" id="discord-client-secret"
+              /></label>
+              <br />
+              <label>Token: <input type="text" id="discord-token" /></label>
+              <br />
+              <button class="save-button" onclick="sendNewDiscordSecrets()">
+                Send new secrets and reload the bot
+              </button>
+            </fieldset>
+          </details>
+          <div>
+            <details id="guild-details">
+              <summary>Click to update the guild ID</summary>
+              <fieldset>
+                <label>Guild ID:<input type="text" id="guild-id" /></label>
+                <br />
+                <button class="save-button" onclick="sendNewGuildId()">
+                  Update Guild ID
+                </button>
+              </fieldset>
+            </details>
+          </div>
+          <div>
+            <div id="guild-join-no-link">
+              No link available to add the bot - Guild ID or Client ID not
+              provided
+            </div>
+            <a id="guild-join-link" href="#" target="_blank"
+              >Add bot to guild</a
+            >
+          </div>
+        </fieldset>
+        <fieldset>
+          <legend>
+            Manage Roles
+            <button class="refresh-button" onclick="reloadRoles()">
+              Refresh server roles
+            </button>
+          </legend>
+          <details>
+            <summary>
+              Roles not managed by the bot (<span id="unhandled-roles-count"
+                >0</span
+              >
+              roles)
+            </summary>
+            <div id="unhandled-roles"></div>
+            <div class="unhandled-role-details">
+              Note: If the roles you want to manage do not appear, check if they
+              are below the role of the bot.<br />
+              The detected role for the bot is "<span
+                id="detected-bot-self-role"
+                >unknown</span
+              >"
+            </div>
+          </details>
+          <h5>Managed roles:</h5>
+          <div id="roles-list"></div>
+        </fieldset>
+        <fieldset>
+          <legend>Refresh User List</legend>
+          <button class="refresh-button" onclick="reloadUsers()">Re-apply all roles to users</button>
+          <button class="refresh-button" onclick="refreshStatus()">
+            Refresh the logs of the last Discord bot run
+          </button>
+          <div id="bot-refresh-status"></div>
+          <hr />
+          <div id="bot-refresh-log"></div>
+        </fieldset>
+      </article>
+    </main>
+    <script type="application/javascript">
+      async function refreshStatus() {
+        const request = await fetch("/ghost/discord/status");
+        const data = await request.json();
+        const botStatusElement = document.getElementById("bot-status");
+        const botConfigurationElement =
+          document.getElementById("bot-configuration");
+        if (data.botStatus) {
+          botStatusElement.innerHTML = `Bot Status: <span style="color: green;">Online</span>`;
+          botConfigurationElement.innerText =
+            "Click to reconfigure the client secret and token";
+        } else if (data.botConfig) {
+          botStatusElement.innerHTML = `Bot Status: <span style="color: red;">Offline</span>`;
+          botConfigurationElement.innerText =
+            "Issue when starting the bot. Check whether 'Server Members Intent' are added on the Discord Bot, or click to reconfigure the client secret and token";
+        } else {
+          botStatusElement.innerHTML = `Bot Status: <span style="color: red;">Offline</span>`;
+          botConfigurationElement.innerText =
+            "No configuration, click to configure the client secret and token";
+        }
+        document.getElementById("discord-client-id").value = data.clientId;
+        document.getElementById("guild-id").value = data.guildId;
+        if (data.pendingRefresh) {
+          document.getElementById("bot-refresh-status").innerText =
+            "Refresh is pending";
+        } else if (data.lastRefresh) {
+          document.getElementById("bot-refresh-status").innerText =
+            "Last refresh results: " + data.lastRefresh.result;
+        } else {
+          document.getElementById("bot-refresh-status").innerText =
+            "No refreshes have been done yet";
+        }
+        let lastRefreshLogs = "";
+        if (data.lastRefresh) {
+          for (const message of data.lastRefresh.messages) {
+            lastRefreshLogs += "<div>";
+            lastRefreshLogs += message;
+            lastRefreshLogs += "</div>";
+          }
+        }
+        document.getElementById("bot-refresh-log").innerHTML = lastRefreshLogs;
+        if (!data.botConfig)
+          document.getElementById("bot-details").open = false;
+        if (!data.guildId)
+          document.getElementById("guild-details").open = false;
+        if (data.clientId && data.guildId) {
+          document.getElementById("guild-join-no-link").style.display = "none";
+          document.getElementById("guild-join-link").style.display = "inline";
+          document
+            .getElementById("guild-join-link")
+            .setAttribute(
+              "href",
+              `https://discord.com/oauth2/authorize?client_id=${data.clientId}&scope=bot&permissions=268435456&guild_id=${data.guildId}&disable_guild_select=true`
+            );
+        } else {
+          document.getElementById("guild-join-no-link").style.display =
+            "inline";
+          document.getElementById("guild-join-link").style.display = "none";
+        }
+      }
+
+      async function sendNewDiscordSecrets() {
+        const token = document.getElementById("discord-token").value;
+        const clientId = document.getElementById("discord-client-id").value;
+        const clientSecret = document.getElementById(
+          "discord-client-secret"
+        ).value;
+        const response = await fetch("/ghost/discord/config/update/tokens", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            token: token,
+            clientId: clientId,
+            clientSecret: clientSecret,
+          }),
+        });
+        const data = await response.json();
+        if (data.status === "ReloadedBot") {
+          document.getElementById("bot-details").open = false;
+          refreshStatus();
+        }
+      }
+
+      async function sendNewGuildId() {
+        const guildId = document.getElementById("guild-id").value;
+        const response = await fetch("/ghost/discord/config/update/guild", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            guildId: guildId,
+          }),
+        });
+        const data = await response.json();
+        document.getElementById("guild-details").open = false;
+        refreshStatus();
+      }
+
+      async function refreshRolesDisplay() {
+        const request = await fetch("/ghost/discord/roles/list");
+        const data = await request.json();
+
+        const highestPosition = data.roles
+          .filter((r) => r.data.isSelfBotRole)
+          .map((r) => r.data.position)
+          .reduce((p, v) => Math.max(p, v), 0);
+
+        const ownRole = data.roles.find(
+          (r) => r.data.position === highestPosition && r.data.isSelfBotRole
+        );
+        if (ownRole) {
+          document.getElementById("detected-bot-self-role").textContent =
+            ownRole.data.name;
+        }
+
+        const validRoles = data.roles
+          .filter((r) => r.data.name !== "@everyone")
+          .filter((r) => r.data.position < highestPosition);
+
+        validRoles.sort((r1, r2) => r2.data.position - r1.data.position);
+
+        console.log(data, highestPosition, validRoles);
+
+        const unhandledRoles = validRoles.filter((r) => !r.is_handled_by_bot);
+
+        const unhandledRolesCountElement = document.getElementById(
+          "unhandled-roles-count"
+        );
+        unhandledRolesCountElement.textContent = unhandledRoles.length;
+        const unhandledRolesElement =
+          document.getElementById("unhandled-roles");
+        let unhandledRolesResult = "<ul>";
+        for (const role of unhandledRoles) {
+          unhandledRolesResult += '<li>"';
+          unhandledRolesResult += role.data.name;
+          unhandledRolesResult += '" - ';
+          unhandledRolesResult += `<button class="refresh-button" onclick="addRoleHandling('${role.discord_role_id}')">Manage Role</button>`;
+          unhandledRolesResult += "</li>";
+        }
+        unhandledRolesResult += "</ul>";
+        unhandledRolesElement.innerHTML = unhandledRolesResult;
+
+        const handledRoles = validRoles.filter((r) => r.is_handled_by_bot);
+        const rolesElement = document.getElementById("roles-list");
+        let handledRolesResult = "<ul>";
+        for (const role of handledRoles) {
+          handledRolesResult += '<li>"';
+          handledRolesResult += role.data.name;
+          handledRolesResult += '" - ';
+          handledRolesResult += `<button class="refresh-button" onclick="removeRoleHandling('${role.discord_role_id}')">Stop Managing</button>`;
+          handledRolesResult += "Associated Ghost tier(s):";
+          let hasAssociation = false;
+          for (const association of data.associations) {
+            if (association.discord_role_id !== role.discord_role_id) continue;
+            const tier = data.tiers.find((t) => t.slug === association.slug);
+            if (!tier) continue;
+            hasAssociation = true;
+            handledRolesResult += ` <span class="associated-tier">`;
+            handledRolesResult += tier.name;
+            handledRolesResult += `<button class="refresh-button" onclick="removeTierToRoleAssociation('${role.discord_role_id}', '${tier.slug}')">Remove</button>`;
+            handledRolesResult += "</span>";
+          }
+          if (!hasAssociation) {
+            handledRolesResult += " None";
+          }
+          handledRolesResult += "<details>";
+          handledRolesResult += "<summary>Associate more tiers:</summary>";
+          handledRolesResult += "<ul>";
+          for (const tier of data.tiers) {
+            handledRolesResult += "<li><label>";
+            handledRolesResult += tier.name;
+            handledRolesResult += `<button class="refresh-button" onclick="associateTierWithRole('${role.discord_role_id}', '${tier.slug}')">Associate</button>`;
+            handledRolesResult += "</label></li>";
+          }
+          handledRolesResult += "</ul>";
+          handledRolesResult += "</details>";
+          handledRolesResult += "</li>";
+        }
+        handledRolesResult += "</ul>";
+        rolesElement.innerHTML = handledRolesResult;
+      }
+      async function reloadRoles() {
+        const result = await fetch("/ghost/discord/refresh/roles", {
+          method: "POST",
+        });
+        const data = await result.json();
+        refreshRolesDisplay();
+      }
+      async function reloadUsers() {
+        const result = await fetch("/ghost/discord/refresh/users", {
+          method: "POST",
+        });
+        const data = await result.json();
+      }
+      async function addRoleHandling(roleId) {
+        const response = await fetch("/ghost/discord/roles/set-bot-handling", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            isHandledByBot: true,
+            discordRoleId: roleId,
+          }),
+        });
+        const data = await response.json();
+        refreshRolesDisplay();
+      }
+      async function removeRoleHandling(roleId) {
+        const response = await fetch("/ghost/discord/roles/set-bot-handling", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            isHandledByBot: false,
+            discordRoleId: roleId,
+          }),
+        });
+        const data = await response.json();
+        refreshRolesDisplay();
+      }
+      async function associateTierWithRole(roleId, slug) {
+        const response = await fetch("/ghost/discord/roles/add-association", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            slug: slug,
+            discordRoleId: roleId,
+          }),
+        });
+        const data = await response.json();
+        refreshRolesDisplay();
+      }
+      async function removeTierToRoleAssociation(roleId, slug) {
+        const response = await fetch(
+          "/ghost/discord/roles/remove-association",
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              slug: slug,
+              discordRoleId: roleId,
+            }),
+          }
+        );
+        const data = await response.json();
+        refreshRolesDisplay();
+      }
+      refreshStatus();
+      refreshRolesDisplay();
+    </script>
+  </body>
+</html>
