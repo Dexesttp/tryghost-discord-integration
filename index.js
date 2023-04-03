@@ -366,9 +366,7 @@ async function refreshMemberRolesOnDiscord() {
       const ghostUsersForDiscordRole = ghostUsers.filter(
         (u) =>
           slugs.includes(u.ghost.status) ||
-          u.ghost.subscriptions.some((s) =>
-            s.tier.some((t) => slugs.includes(t.slug))
-          )
+          u.ghost.subscriptions.some((s) => slugs.includes(s.tier.slug))
       );
 
       // Remove existing members if needed
